@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/screens/LoginScreen.js
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -39,6 +40,28 @@ const LoginScreen = ({ navigation, route }) => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // NEW: remember me state
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Load remembered username (if any) on mount
+  useEffect(() => {
+    const loadRemembered = async () => {
+      try {
+        const rem = await AsyncStorage.getItem('remembered');
+        if (rem) {
+          const obj = JSON.parse(rem);
+          if (obj?.username) {
+            setUsername(obj.username);
+            setRememberMe(true);
+          }
+        }
+      } catch (e) {
+        console.log('loadRemembered error', e);
+      }
+    };
+    loadRemembered();
+  }, []);
+
   const LoginHandler = async () => {
     if (username.trim() === '' || password.trim() === '') {
       setError(t('dontHaveAccount')); // example text from translations
@@ -52,14 +75,31 @@ const LoginScreen = ({ navigation, route }) => {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         if (user.username === username && user.password === password) {
+          // Manage remember me: save username only
+          try {
+            if (rememberMe) {
+              await AsyncStorage.setItem(
+                'remembered',
+                JSON.stringify({ username }),
+              );
+            } else {
+              await AsyncStorage.removeItem('remembered');
+            }
+          } catch (e) {
+            console.log('remember store error', e);
+          }
+
           Alert.alert('✅', t('login') + ' successful!');
           navigation.navigate('Tab'); // go to bottom tab navigator
           setError('');
-          setUsername('');
           setPassword('');
+          // keep username if remembered; otherwise clear
+          if (!rememberMe) setUsername('');
         } else {
           setError('Incorrect username or password');
         }
+      } else {
+        setError('No user registered. Please sign up first.');
       }
     } catch (e) {
       console.log(e);
@@ -168,6 +208,27 @@ const LoginScreen = ({ navigation, route }) => {
               size={20}
               color="#666"
             />
+          </TouchableOpacity>
+        </Animatable.View>
+
+        {/* NEW: Remember Me */}
+        <Animatable.View animation="fadeIn" delay={850}>
+          <TouchableOpacity
+            style={styles.rememberRow}
+            activeOpacity={0.8}
+            onPress={() => setRememberMe(prev => !prev)}
+          >
+            <View
+              style={[
+                styles.checkbox,
+                rememberMe ? styles.checkboxChecked : null,
+              ]}
+            >
+              {rememberMe && (
+                <FontAwesome name="check" size={14} color="#fff" />
+              )}
+            </View>
+            <Text style={styles.rememberText}>Remember me</Text>
           </TouchableOpacity>
         </Animatable.View>
 
@@ -315,7 +376,13 @@ const styles = StyleSheet.create({
     marginTop: hp('2%'),
     fontSize: hp('1.8%'),
   },
-  span: { color: '#1E90FF', fontWeight: 'bold', marginTop: hp('2%') },
+  span: {
+    color: '#1E90FF',
+    fontWeight: 'bold',
+    fontSize: hp('1.8%'),
+    marginTop: hp('2%'),
+    textAlign: 'center',
+  },
   googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -337,5 +404,31 @@ const styles = StyleSheet.create({
     fontSize: hp('2%'),
     color: '#374151',
     fontWeight: '600',
+  },
+
+  // NEW styles for remember me
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp('1%'),
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    backgroundColor: '#fff',
+  },
+  checkboxChecked: {
+    backgroundColor: '#304766',
+    borderColor: '#304766',
+  },
+  rememberText: {
+    color: '#334155',
+    fontSize: hp('1.9%'),
   },
 });
