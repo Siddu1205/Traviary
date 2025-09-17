@@ -8,10 +8,8 @@ const ProfileScreen = ({ navigation }) => {
   const { tripHistory } = useContext(TripContext);
   const [user, setUser] = useState(null);
 
-  // Get last booked trip
   const latestTrip = tripHistory[tripHistory.length - 1];
 
-  // Load user from AsyncStorage
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -39,7 +37,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Profile Section */}
+      
       <View style={styles.profileBox}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
@@ -50,7 +48,7 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={styles.email}>{user?.email || "No email saved"}</Text>
       </View>
 
-      {/* Trip Info */}
+      
       {latestTrip ? (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Latest Trip</Text>
@@ -73,7 +71,7 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={styles.noTrip}>No trips booked yet.</Text>
       )}
 
-      {/* Logout Button */}
+      
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>

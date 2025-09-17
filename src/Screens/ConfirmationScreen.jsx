@@ -1,4 +1,3 @@
-// ConfirmationScreen.js
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import {
@@ -6,12 +5,11 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import StepIndicator from '../components/StepIndicator';
-import { TripContext } from '../components/TripContext'; // ✅ correct path
+import { TripContext } from '../components/TripContext';
 
 const ConfirmationScreen = ({ navigation }) => {
   const { trip, addTrip } = useContext(TripContext);
 
-  // ✅ trip data comes directly from context
   const {
     name,
     startLocation,
@@ -22,12 +20,10 @@ const ConfirmationScreen = ({ navigation }) => {
     assistance: travelAssistance,
   } = trip;
 
-  // ✅ calculate total guests
   const totalGuests =
     (guests?.adults || 0) + (guests?.children || 0) + (guests?.infants || 0);
 
   const handleConfirm = () => {
-    // store only essential trip data
     addTrip({ endLocation, startDate, endDate, assistance: travelAssistance });
     navigation.navigate('Success');
   };

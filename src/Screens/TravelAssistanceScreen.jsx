@@ -1,4 +1,3 @@
-// TravelAssistanceScreen.js
 import React, { useContext, useState } from "react";
 import {
   View,
@@ -42,7 +41,6 @@ const TravelAssistanceScreen = ({ navigation }) => {
       <Text style={styles.title}>Travel Assistance</Text>
       <Text style={styles.subtitle}>Select your Travel Assistance.</Text>
 
-      {/* Checkbox */}
       <TouchableOpacity
         style={styles.checkboxRow}
         onPress={() => setEnabled((v) => !v)}
@@ -51,7 +49,6 @@ const TravelAssistanceScreen = ({ navigation }) => {
         <Text style={styles.checkboxLabel}>Travel Assistance</Text>
       </TouchableOpacity>
 
-      {/* Dropdown */}
       {enabled && (
         <View style={styles.dropdownContainer}>
           <Text style={styles.dropdownLabel}>Travel Assistance</Text>
@@ -70,7 +67,6 @@ const TravelAssistanceScreen = ({ navigation }) => {
         </View>
       )}
 
-      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.prevBtn}
@@ -87,7 +83,6 @@ const TravelAssistanceScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom image */}
       <Image
         source={require("../images/Trees.png")}
         style={styles.bottomImage}

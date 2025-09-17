@@ -1,7 +1,6 @@
 import { View, Text } from 'react-native';
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-// import UserDetailsScreen from './src/Screens/UserDetailsScreen';
 import UserDetailsScreen from '../Screens/UserDetailsScreen';
 import DateSelectionScreen from '../Screens/DateSelection';
 import SuccessScreen from '../Screens/SuccessScreen';

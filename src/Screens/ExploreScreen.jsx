@@ -1,4 +1,3 @@
-// src/screens/ExploreScreen.js
 import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
@@ -24,7 +23,7 @@ const ExploreScreen = ({ navigation }) => {
     attractions: [],
   });
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('hotels'); // 🔹 NEW
+  const [activeTab, setActiveTab] = useState('hotels'); 
 
   useEffect(() => {
     if (endLocation.trim()) {
@@ -123,7 +122,6 @@ const ExploreScreen = ({ navigation }) => {
         Explore near {endLocation || 'your destination'}
       </Text>
 
-      {/* 🔹 Top Tabs */}
       <View style={styles.tabContainer}>
         {['hotels', 'restaurants', 'attractions'].map(tab => (
           <TouchableOpacity
@@ -172,7 +170,6 @@ const styles = StyleSheet.create({
   },
   header: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
 
-  // 🔹 Tabs
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -194,7 +191,7 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 14, fontWeight: '600', color: '#555' },
   tabTextActive: { color: '#fff' },
 
-  // 🔹 Card
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,

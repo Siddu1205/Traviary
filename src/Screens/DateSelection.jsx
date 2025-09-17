@@ -1,4 +1,3 @@
-// DateSelectionScreen.js
 import React, { useContext, useState, useCallback } from 'react';
 import {
   View,
@@ -10,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // CLI icon lib
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import StepIndicator from '../components/StepIndicator';
 import {
   widthPercentageToDP as wp,
@@ -18,7 +17,7 @@ import {
 } from 'react-native-responsive-screen';
 import { TripContext } from '../components/TripContext';
 
-/* ---------- helpers ---------- */
+
 const parseDDMMYYYY = (s) => {
   if (!s || typeof s !== 'string') return null;
   const parts = s.split('/');
@@ -37,46 +36,35 @@ const formatDateDDMMYYYY = (d) => {
   return `${dd}/${mm}/${yyyy}`;
 };
 
-/* ---------- component ---------- */
 const DateSelectionScreen = ({ navigation }) => {
   const { trip, setTrip } = useContext(TripContext);
 
-  // Strings in context: trip.startDate and trip.endDate ('' or 'dd/mm/yyyy')
   const startStr = trip?.startDate || '';
   const endStr = trip?.endDate || '';
 
-  // Local Date objects for pickers (stable across rerenders)
   const [startDateObj, setStartDateObj] = useState(() => parseDDMMYYYY(startStr) || new Date());
   const [endDateObj, setEndDateObj] = useState(() => parseDDMMYYYY(endStr) || new Date());
 
   const [openStart, setOpenStart] = useState(false);
   const [openEnd, setOpenEnd] = useState(false);
 
-  // Valid if both selected and end >= start
   const bothSelected = !!startStr && !!endStr;
   const isValid =
     bothSelected &&
     (parseDDMMYYYY(endStr)?.getTime() ?? endDateObj.getTime()) >=
       (parseDDMMYYYY(startStr)?.getTime() ?? startDateObj.getTime());
   
-  /* 
-    IMPORTANT: close modal first, then update context.
-    This avoids races where updating context triggers re-renders while the modal is still trying to animate/close,
-    which on some Android/emulator setups causes freezes/ANR.
-  */
   const onConfirmStart = useCallback(
     (selectedDate) => {
-      setOpenStart(false); // close modal immediately
+      setOpenStart(false);
       if (!selectedDate || !(selectedDate instanceof Date)) return;
 
       setStartDateObj(selectedDate);
 
-      // Delay updating the context a tick so modal finishes closing first
       setTimeout(() => {
         const formattedStart = formatDateDDMMYYYY(selectedDate);
         const currentEnd = parseDDMMYYYY(endStr) || endDateObj;
 
-        // If end is before new start, bump end to start
         if (currentEnd.getTime() < selectedDate.getTime()) {
           setEndDateObj(selectedDate);
           setTrip({ ...trip, startDate: formattedStart, endDate: formattedStart });
@@ -85,19 +73,16 @@ const DateSelectionScreen = ({ navigation }) => {
         }
       }, 50);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [trip, endStr, endDateObj]
   );
 
   const onConfirmEnd = useCallback(
     (selectedDate) => {
-      setOpenEnd(false); // close modal immediately
+      setOpenEnd(false);
       if (!selectedDate || !(selectedDate instanceof Date)) return;
 
-      // check validity (defensive)
       const startDate = parseDDMMYYYY(startStr) || startDateObj;
       if (selectedDate.getTime() < startDate.getTime()) {
-        // briefly close picker, then alert
         setTimeout(() => {
           Alert.alert('Invalid date', 'End date cannot be before start date.');
         }, 60);
@@ -110,7 +95,6 @@ const DateSelectionScreen = ({ navigation }) => {
         setTrip({ ...trip, endDate: formatDateDDMMYYYY(selectedDate) });
       }, 50);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [trip, startStr, startDateObj]
   );
 
@@ -121,7 +105,6 @@ const DateSelectionScreen = ({ navigation }) => {
       <Text style={styles.title}>Date Selection</Text>
       <Text style={styles.sub}>Select your Start and End Date.</Text>
 
-      {/* Start Date */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Start Date</Text>
         <View style={styles.inputWrapper}>
@@ -144,7 +127,6 @@ const DateSelectionScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* End Date */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>End Date</Text>
         <View style={styles.inputWrapper}>
@@ -173,7 +155,6 @@ const DateSelectionScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Next Button */}
       <TouchableOpacity
         disabled={!isValid}
         style={[styles.button, !isValid && styles.buttonDisabled]}
@@ -182,7 +163,6 @@ const DateSelectionScreen = ({ navigation }) => {
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
 
-      {/* DatePicker Modals — render only when open to reduce work */}
       {openStart && (
         <DatePicker
           modal
@@ -206,7 +186,6 @@ const DateSelectionScreen = ({ navigation }) => {
         />
       )}
 
-      {/* Bottom Image */}
       <Image
         source={require('../images/mountain.png')}
         style={styles.bottomImage}

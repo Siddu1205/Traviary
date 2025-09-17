@@ -1,4 +1,3 @@
-// src/screens/TravelDetailsScreen.js
 import React, { useContext } from "react";
 import {
   View,
@@ -12,7 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { TripContext } from "../components/TripContext"; // ✅ correct path
+import { TripContext } from "../components/TripContext";
 
 const TravelDetailsScreen = ({ navigation }) => {
   const { tripHistory, removeTrip, resetTrip } = useContext(TripContext);
@@ -35,7 +34,7 @@ const TravelDetailsScreen = ({ navigation }) => {
           <TouchableOpacity
             style={styles.bookBtn}
             onPress={() => {
-              resetTrip(); // ✅ clear before starting new booking
+              resetTrip();
               navigation.navigate("UserDetails");
             }}
           >

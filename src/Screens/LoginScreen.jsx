@@ -1,4 +1,3 @@
-// src/screens/LoginScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -25,13 +24,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
 import { Picker } from '@react-native-picker/picker';
 
-// 🔹 use custom hook
+
 import { useTranslation } from '../components/useTranslation';
 
 const LoginScreen = ({ navigation, route }) => {
   const { mode } = route.params || { mode: 'login' };
 
-  // translation hook
   const { t, language, setLanguage } = useTranslation();
 
   const [username, setUsername] = useState('');
@@ -40,10 +38,8 @@ const LoginScreen = ({ navigation, route }) => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // NEW: remember me state
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Load remembered username (if any) on mount
   useEffect(() => {
     const loadRemembered = async () => {
       try {
@@ -64,7 +60,7 @@ const LoginScreen = ({ navigation, route }) => {
 
   const LoginHandler = async () => {
     if (username.trim() === '' || password.trim() === '') {
-      setError(t('dontHaveAccount')); // example text from translations
+      setError(t('dontHaveAccount'));
       return;
     } else if (password.length < 6) {
       setError('Password must be at least 6 characters');
@@ -75,7 +71,7 @@ const LoginScreen = ({ navigation, route }) => {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         if (user.username === username && user.password === password) {
-          // Manage remember me: save username only
+          
           try {
             if (rememberMe) {
               await AsyncStorage.setItem(
@@ -90,10 +86,9 @@ const LoginScreen = ({ navigation, route }) => {
           }
 
           Alert.alert('✅', t('login') + ' successful!');
-          navigation.navigate('Tab'); // go to bottom tab navigator
+          navigation.navigate('Tab'); 
           setError('');
           setPassword('');
-          // keep username if remembered; otherwise clear
           if (!rememberMe) setUsername('');
         } else {
           setError('Incorrect username or password');
@@ -132,7 +127,6 @@ const LoginScreen = ({ navigation, route }) => {
 
   return (
     <LinearGradient colors={['#E0EAFC', '#CFDEF3']} style={styles.container}>
-      {/* Language Picker */}
       {mode === 'login' && (
         <View style={styles.pickerContainer}>
           <Picker
@@ -149,7 +143,6 @@ const LoginScreen = ({ navigation, route }) => {
       )}
 
       <Animatable.View animation="fadeInUp" duration={70} style={styles.card}>
-        {/* Logo */}
         <Animatable.Image
           animation="bounceIn"
           duration={1500}
@@ -158,7 +151,6 @@ const LoginScreen = ({ navigation, route }) => {
           resizeMode="contain"
         />
 
-        {/* Username */}
         <Animatable.View animation="fadeInLeft" delay={300}>
           <Text style={styles.label}>{t('username')}</Text>
           <TextInput
@@ -170,7 +162,6 @@ const LoginScreen = ({ navigation, route }) => {
           />
         </Animatable.View>
 
-        {/* Email only in signup */}
         {mode === 'signup' && (
           <Animatable.View animation="fadeInLeft" delay={500}>
             <Text style={styles.label}>Email</Text>
@@ -184,7 +175,6 @@ const LoginScreen = ({ navigation, route }) => {
           </Animatable.View>
         )}
 
-        {/* Password */}
         <Animatable.View
           animation="fadeInLeft"
           delay={700}
@@ -211,7 +201,6 @@ const LoginScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </Animatable.View>
 
-        {/* NEW: Remember Me */}
         <Animatable.View animation="fadeIn" delay={850}>
           <TouchableOpacity
             style={styles.rememberRow}
@@ -232,14 +221,12 @@ const LoginScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </Animatable.View>
 
-        {/* Error */}
         {error ? (
           <Animatable.Text animation="fadeIn" style={styles.error}>
             {error}
           </Animatable.Text>
         ) : null}
 
-        {/* Submit Button */}
         <Animatable.View animation="fadeInUp" delay={900}>
           <TouchableOpacity
             style={styles.button}
@@ -251,7 +238,6 @@ const LoginScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </Animatable.View>
 
-        {/* Switch Mode */}
         <Animatable.View
           animation="fadeIn"
           delay={1100}
@@ -278,7 +264,6 @@ const LoginScreen = ({ navigation, route }) => {
           )}
         </Animatable.View>
 
-        {/* Google button */}
         <Animatable.View animation="fadeInUp" delay={1300}>
           <TouchableOpacity style={styles.googleBtn} onPress={GoogleHandler}>
             <AntDesign name="google" size={24} color="#DB4437" />
@@ -406,7 +391,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // NEW styles for remember me
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',

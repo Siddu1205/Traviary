@@ -1,4 +1,3 @@
-// src/screens/GuestSelector.js
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import StepIndicator from '../components/StepIndicator';
@@ -11,9 +10,8 @@ import { TripContext } from '../components/TripContext';
 const GuestSelector = ({ navigation }) => {
   const { trip, setTrip } = useContext(TripContext);
 
-  // counters update trip directly
-  const increment = (field) => {
-    setTrip((prev) => ({
+  const increment = field => {
+    setTrip(prev => ({
       ...prev,
       guests: {
         ...prev.guests,
@@ -22,8 +20,8 @@ const GuestSelector = ({ navigation }) => {
     }));
   };
 
-  const decrement = (field) => {
-    setTrip((prev) => ({
+  const decrement = field => {
+    setTrip(prev => ({
       ...prev,
       guests: {
         ...prev.guests,
@@ -38,58 +36,72 @@ const GuestSelector = ({ navigation }) => {
       <Text style={styles.title}>Guests</Text>
       <Text style={styles.subtitle}>Select your Guests</Text>
 
-      {/* Adults */}
       <View style={styles.row}>
         <View>
           <Text style={styles.label}>Adults</Text>
           <Text style={styles.subLabel}>Age 13 or above</Text>
         </View>
         <View style={styles.counter}>
-          <TouchableOpacity style={styles.btn} onPress={() => decrement('adults')}>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => decrement('adults')}
+          >
             <Text style={styles.btnText}>-</Text>
           </TouchableOpacity>
           <Text style={styles.value}>{trip.guests.adults}</Text>
-          <TouchableOpacity style={styles.btn} onPress={() => increment('adults')}>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => increment('adults')}
+          >
             <Text style={styles.btnText}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Children */}
       <View style={styles.row}>
         <View>
           <Text style={styles.label}>Children</Text>
           <Text style={styles.subLabel}>Age 2–12</Text>
         </View>
         <View style={styles.counter}>
-          <TouchableOpacity style={styles.btn} onPress={() => decrement('children')}>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => decrement('children')}
+          >
             <Text style={styles.btnText}>-</Text>
           </TouchableOpacity>
           <Text style={styles.value}>{trip.guests.children}</Text>
-          <TouchableOpacity style={styles.btn} onPress={() => increment('children')}>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => increment('children')}
+          >
             <Text style={styles.btnText}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Infants */}
       <View style={styles.row}>
         <View>
           <Text style={styles.label}>Infants</Text>
           <Text style={styles.subLabel}>Under 2</Text>
         </View>
         <View style={styles.counter}>
-          <TouchableOpacity style={styles.btn} onPress={() => decrement('infants')}>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => decrement('infants')}
+          >
             <Text style={styles.btnText}>-</Text>
           </TouchableOpacity>
           <Text style={styles.value}>{trip.guests.infants}</Text>
-          <TouchableOpacity style={styles.btn} onPress={() => increment('infants')}>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => increment('infants')}
+          >
             <Text style={styles.btnText}>+</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Footer Buttons */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.prevBtn}
@@ -105,7 +117,6 @@ const GuestSelector = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Image */}
       <Image
         source={require('../images/beach.png')}
         style={styles.bottomImage}
@@ -117,7 +128,6 @@ const GuestSelector = ({ navigation }) => {
 };
 
 export default GuestSelector;
-
 
 const styles = StyleSheet.create({
   container: {
@@ -203,11 +213,11 @@ const styles = StyleSheet.create({
     fontSize: wp('4%'),
   },
   bottomImage: {
-    position: "absolute",
-    bottom: 0, // 👈 moved to right
-    height: hp("35%"),
-    width: wp("100%"), // only half width, so it sits right side
-    marginBottom: hp("2%"),
+    position: 'absolute',
+    bottom: 0,
+    height: hp('35%'),
+    width: wp('100%'),
+    marginBottom: hp('2%'),
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
   },

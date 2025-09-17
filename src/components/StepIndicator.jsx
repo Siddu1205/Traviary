@@ -4,7 +4,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const StepIndicator = ({ currentStep }) => {
-  const totalSteps = 5; // now 5 steps
+  const totalSteps = 5; 
 
   return (
     <SafeAreaView>
@@ -16,7 +16,7 @@ const StepIndicator = ({ currentStep }) => {
             styles.step,
             {
               backgroundColor:
-                index === currentStep ? '#1e90ff' : '#d3d3d3', // blue if active else grey
+                index === currentStep ? '#1e90ff' : '#d3d3d3', 
             },
           ]}
         />

@@ -58,7 +58,6 @@ const PlaceDetailsScreen = ({ route }) => {
         </View>
       </View>
 
-      {/* Open/Closed + Timings */}
       {place.opening_hours && (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>
@@ -72,7 +71,6 @@ const PlaceDetailsScreen = ({ route }) => {
         </View>
       )}
 
-      {/* Reviews */}
       {place.reviews && (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Top Reviews</Text>
@@ -87,7 +85,6 @@ const PlaceDetailsScreen = ({ route }) => {
         </View>
       )}
 
-      {/* Actions */}
       <View style={styles.actionRow}>
         {place.website && (
           <TouchableOpacity
@@ -118,8 +115,7 @@ const PlaceDetailsScreen = ({ route }) => {
           <Text style={styles.actionText}>📍 Directions</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Payment Button */}
+      
       <TouchableOpacity style={styles.paymentBtn}>
         <Text style={styles.paymentText}>💳 Book / Pay</Text>
       </TouchableOpacity>

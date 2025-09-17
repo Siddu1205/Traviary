@@ -23,7 +23,6 @@ export const TripProvider = ({ children }) => {
   const addTrip = (newTrip) => {
     if (!newTrip) return;
     setTripHistory((prev) => [...prev, newTrip]);
-    // resetTrip();
   };
 
   const removeTrip = (index) => {
@@ -31,7 +30,7 @@ export const TripProvider = ({ children }) => {
   };
 
   const resetTrip = () => {
-    setTrip({ ...initialTrip }); // reset trip
+    setTrip({ ...initialTrip });
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import {  StyleSheet, Image } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import * as Animatable from "react-native-animatable";
 import {
@@ -11,7 +11,7 @@ const SplashScreen = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace("Login");
-    }, 4000); // fadeInLeft duration + small delay
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, []);

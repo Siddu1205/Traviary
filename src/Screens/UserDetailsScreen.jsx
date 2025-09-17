@@ -13,7 +13,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { TripContext } from '../components/TripContext'; // ✅ corrected import
+import { TripContext } from '../components/TripContext'; 
 
 const UserDetailsScreen = ({ navigation }) => {
   const { trip, setTrip } = useContext(TripContext);
@@ -27,8 +27,6 @@ const UserDetailsScreen = ({ navigation }) => {
       <View style={styles.content}>
         <Text style={styles.title}>Your Details</Text>
         <Text style={styles.sub}>Enter your name and location details</Text>
-
-        {/* Name */}
         <Text style={styles.label}>Name</Text>
         <View style={styles.inputContainer}>
           <Icon
@@ -45,8 +43,6 @@ const UserDetailsScreen = ({ navigation }) => {
             onChangeText={text => setTrip({ ...trip, name: text })}
           />
         </View>
-
-        {/* Start Location */}
         <Text style={styles.label}>Start Location</Text>
         <View style={styles.inputContainer}>
           <Icon
@@ -64,7 +60,6 @@ const UserDetailsScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* End Location */}
         <Text style={styles.label}>End Location</Text>
         <View style={styles.inputContainer}>
           <Icon
@@ -82,12 +77,10 @@ const UserDetailsScreen = ({ navigation }) => {
           />
         </View>
 
-        {/* Next Button */}
         <TouchableOpacity
           disabled={!isValid}
           style={[styles.button, !isValid && styles.buttonDisabled]}
           onPress={() => {
-            // ✅ ensure context is updated before moving ahead
             setTrip(prev => ({ ...prev, endLocation: trip.endLocation }));
             navigation.navigate('DateSelection');
           }}
