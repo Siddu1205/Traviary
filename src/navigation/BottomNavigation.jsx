@@ -1,7 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../Screens/HomeScreen';
 import TripDetailsScreen from '../Screens/TripDetailsScreen';
 import LogOutScreen from '../Screens/LogOutScreen';
@@ -36,6 +37,15 @@ const MyTabs = () => {
           ),
         }}
       />
+       <Tab.Screen
+        name="Explore"
+        component={ExploreScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search" size={size} color={color} />
+          ),
+        }}
+      />
       <Tab.Screen
         name="LogOut"
         component={LogOutScreen}
@@ -45,15 +55,7 @@ const MyTabs = () => {
           ),
         }}
         />
-        <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <SimpleLineIcons name="logout" size={size} color={color} />
-          ),
-        }}
-      />
+       
     </Tab.Navigator>
   );
 };

@@ -6,7 +6,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
+  TextInput,
   StyleSheet,
 } from 'react-native';
 import { TripContext } from '../components/TripContext';
@@ -15,125 +15,181 @@ const API_KEY = 'AIzaSyAwuRrLeMEG_JfwIe_oWgAHpy8zIBURQvM';
 
 const ExploreScreen = ({ navigation }) => {
   const { trip } = useContext(TripContext);
-  const endLocation = trip?.endLocation ?? '';
-
   const [places, setPlaces] = useState({
     hotels: [],
     restaurants: [],
     attractions: [],
+    cities: [],
   });
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('hotels'); 
+  const [activeTab, setActiveTab] = useState('hotels');
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    if (endLocation.trim()) {
-      loadPlaces(endLocation.trim());
-    }
-  }, [endLocation]);
+  let typingTimeout; // debounce reference
 
-  const getCoordinates = async location => {
+  const fetchCoordinates = async location => {
     try {
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        location,
-      )}&key=${API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.status === 'OK' && data.results.length > 0) {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${API_KEY}`,
+      );
+      const data = await response.json();
+      if (data.results && data.results[0]) {
         return data.results[0].geometry.location;
-      } else {
-        return null;
       }
+      return null;
     } catch (e) {
+      console.error('Geocoding error:', e);
       return null;
     }
   };
 
-  const fetchPlacesNearby = async (lat, lng, type) => {
+  const fetchPlaces = async (coords, type) => {
     try {
-      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=8000&type=${type}&key=${API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.status === 'OK') return data.results;
-      else return [];
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${coords.lat},${coords.lng}&radius=3000&type=${type}&key=${API_KEY}`,
+      );
+      const data = await response.json();
+      return data.results || [];
     } catch (e) {
+      console.error('Nearby fetch error:', e);
       return [];
     }
   };
 
-  const loadPlaces = async location => {
-    setLoading(true);
-    setPlaces({ hotels: [], restaurants: [], attractions: [] });
-
-    const coords = await getCoordinates(location);
-    if (!coords) {
-      setLoading(false);
-      Alert.alert('Error', 'Could not resolve location: ' + location);
-      return;
+  const fetchPlacesByQuery = async query => {
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${API_KEY}`,
+      );
+      const data = await response.json();
+      return data.results || [];
+    } catch (e) {
+      console.error('Text search error:', e);
+      return [];
     }
+  };
 
-    const [hotels, restaurants, attractions] = await Promise.all([
-      fetchPlacesNearby(coords.lat, coords.lng, 'lodging'),
-      fetchPlacesNearby(coords.lat, coords.lng, 'restaurant'),
-      fetchPlacesNearby(coords.lat, coords.lng, 'tourist_attraction'),
-    ]);
+  const loadTrending = async () => {
+    setLoading(true);
+    const trendingCities = ['Delhi', 'Mumbai', 'Bangalore', 'Goa', 'Jaipur'];
+    const trendingHotels = await fetchPlacesByQuery('best hotels in India');
+    const trendingAttractions = await fetchPlacesByQuery(
+      'famous attractions in India',
+    );
 
-    setPlaces({ hotels, restaurants, attractions });
+    setPlaces({
+      hotels: trendingHotels,
+      restaurants: [],
+      attractions: trendingAttractions,
+      cities: trendingCities,
+    });
+    setActiveTab('hotels');
     setLoading(false);
   };
 
-  const renderCard = ({ item }) => {
-    const photoRef = item.photos?.[0]?.photo_reference;
-    const photo = photoRef
-      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=${photoRef}&key=${API_KEY}`
-      : null;
-
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() =>
-          navigation.navigate('PlaceDetails', { placeId: item.place_id })
-        }
-      >
-        {photo ? (
-          <Image source={{ uri: photo }} style={styles.cardImage} />
-        ) : (
-          <View style={styles.cardPlaceholder} />
-        )}
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {item.name}
-          </Text>
-          <Text style={styles.cardAddress} numberOfLines={1}>
-            {item.vicinity || item.formatted_address || ''}
-          </Text>
-          <Text style={styles.cardRating}>⭐ {item.rating ?? 'N/A'}</Text>
-        </View>
-      </TouchableOpacity>
-    );
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setLoading(true);
+    try {
+      const coords = await fetchCoordinates(searchQuery.trim());
+      if (coords) {
+        const [hotels, restaurants, attractions] = await Promise.all([
+          fetchPlaces(coords, 'lodging'),
+          fetchPlaces(coords, 'restaurant'),
+          fetchPlaces(coords, 'tourist_attraction'),
+        ]);
+        setPlaces({ hotels, restaurants, attractions, cities: [] });
+        setActiveTab('hotels');
+      } else {
+        const results = await fetchPlacesByQuery(searchQuery.trim());
+        setPlaces({
+          hotels: [],
+          restaurants: [],
+          attractions: results,
+          cities: [],
+        });
+        setActiveTab('attractions');
+      }
+    } catch (e) {
+      console.error('Search error:', e);
+    }
+    setLoading(false);
   };
 
-  const currentData = places[activeTab] || [];
+  // Initial load with trip endLocation
+  useEffect(() => {
+    if (trip?.endLocation?.trim()) {
+      setSearchQuery(trip.endLocation.trim());
+      handleSearch();
+    } else {
+      loadTrending();
+    }
+  }, [trip?.endLocation]);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (!searchQuery.trim()) return;
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      handleSearch();
+    }, 800); // 600ms debounce
+    return () => clearTimeout(typingTimeout);
+  }, [searchQuery]);
+
+  const renderPlaceItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate('PlaceDetails', { placeId: item.place_id })
+      }
+      style={styles.card}
+    >
+      {item.photos?.[0] ? (
+        <Image
+          source={{
+            uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${item.photos[0].photo_reference}&key=${API_KEY}`,
+          }}
+          style={styles.image}
+        />
+      ) : (
+        <View style={[styles.image, styles.placeholder]} />
+      )}
+      <View style={styles.cardContent}>
+        <Text style={styles.placeName}>{item.name}</Text>
+        <Text style={styles.placeAddress}>
+          {item.formatted_address || item.vicinity}
+        </Text>
+        <Text style={styles.placeRating}>⭐ {item.rating || 'N/A'}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading)
+    return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>
-        Explore near {endLocation || 'your destination'}
-      </Text>
+    <View style={{ flex: 1, padding: 10, marginTop: 40 }}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search city, restaurant, or attraction..."
+          style={styles.searchInput}
+        />
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <Text style={{ color: 'white' }}>Search</Text>
+        </TouchableOpacity>
+      </View>
 
-      <View style={styles.tabContainer}>
+      {/* Tabs */}
+      <View style={styles.tabs}>
         {['hotels', 'restaurants', 'attractions'].map(tab => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tabButton, activeTab === tab && styles.tabActive]}
             onPress={() => setActiveTab(tab)}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
             <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.tabTextActive,
-              ]}
+              style={activeTab === tab ? styles.activeTabText : styles.tabText}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Text>
@@ -141,72 +197,71 @@ const ExploreScreen = ({ navigation }) => {
         ))}
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" style={{ marginTop: 20 }} />
-      ) : currentData.length > 0 ? (
+      {/* Results */}
+      {places[activeTab]?.length > 0 ? (
         <FlatList
-          data={currentData}
-          renderItem={renderCard}
-          keyExtractor={i => i.place_id}
-          contentContainerStyle={{ paddingVertical: 10 }}
+          data={places[activeTab]}
+          renderItem={renderPlaceItem}
+          keyExtractor={(item, index) => item.place_id || index.toString()}
         />
       ) : (
-        <Text style={{ marginTop: 20, textAlign: 'center' }}>
-          No places found for {activeTab} near "{endLocation}".
+        <Text style={{ textAlign: 'center', marginTop: 50, color: '#555' }}>
+          No results found
         </Text>
       )}
     </View>
   );
 };
 
-export default ExploreScreen;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f9f9f9',
-    paddingVertical: '50',
-  },
-  header: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
-
-  tabContainer: {
+  searchContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 6,
-    elevation: 3,
+    marginBottom: 10,
   },
-  tabButton: {
+  searchInput: {
     flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginRight: 5,
+  },
+  searchButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 15,
+    justifyContent: 'center',
     borderRadius: 8,
   },
-  tabActive: {
-    backgroundColor: '#007AFF',
+  tabs: {
+    flexDirection: 'row',
+    marginVertical: 10,
   },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#555' },
-  tabTextActive: { color: '#fff' },
-
-
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomColor: '#007AFF',
+  },
+  tabText: { color: '#555' },
+  activeTabText: { color: '#007AFF', fontWeight: 'bold' },
   card: {
+    flexDirection: 'row',
+    marginVertical: 5,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: 8,
     overflow: 'hidden',
-    elevation: 4,
+    elevation: 2,
   },
-  cardImage: { width: '100%', height: 180 },
-  cardPlaceholder: {
-    width: '100%',
-    height: 180,
-    backgroundColor: '#ddd',
-  },
-  cardContent: { padding: 12 },
-  cardTitle: { fontWeight: '700', fontSize: 16, marginBottom: 4 },
-  cardAddress: { fontSize: 13, color: '#555' },
-  cardRating: { fontSize: 13, marginTop: 6, color: '#333' },
+  image: { width: 100, height: 100 },
+  placeholder: { backgroundColor: '#eee' },
+  cardContent: { flex: 1, padding: 8 },
+  placeName: { fontSize: 16, fontWeight: 'bold' },
+  placeAddress: { fontSize: 12, color: '#555' },
+  placeRating: { fontSize: 12, marginTop: 5 },
 });
+
+export default ExploreScreen;

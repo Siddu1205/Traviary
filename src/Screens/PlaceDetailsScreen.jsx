@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
-} from "react-native";
+  Alert,
+} from 'react-native';
 
-const API_KEY = "AIzaSyAwuRrLeMEG_JfwIe_oWgAHpy8zIBURQvM";
+const API_KEY = 'AIzaSyAwuRrLeMEG_JfwIe_oWgAHpy8zIBURQvM';
 
 const PlaceDetailsScreen = ({ route }) => {
   const { placeId } = route.params;
@@ -19,24 +20,47 @@ const PlaceDetailsScreen = ({ route }) => {
 
   useEffect(() => {
     const fetchDetails = async () => {
-      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,rating,user_ratings_total,price_level,reviews,photos&key=${API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status === "OK") setPlace(data.result);
-      setLoading(false);
+      try {
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,rating,user_ratings_total,price_level,reviews,photos&key=${API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.status === 'OK') {
+          setPlace(data.result);
+        } else {
+          Alert.alert('Error', 'Failed to fetch place details.');
+        }
+      } catch (err) {
+        Alert.alert('Error', 'Something went wrong while fetching details.');
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchDetails();
   }, [placeId]);
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
-  if (!place) return <Text>No details found</Text>;
+  if (!place) {
+    return (
+      <View style={styles.loader}>
+        <Text>No details found</Text>
+      </View>
+    );
+  }
 
-  const getPriceSymbol = (level) => "₹".repeat(level || 0);
+  const getPriceSymbol = level => '₹'.repeat(level || 0);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Cover image */}
+      {/* Cover Image */}
       {place.photos?.[0]?.photo_reference && (
         <Image
           source={{
@@ -46,22 +70,25 @@ const PlaceDetailsScreen = ({ route }) => {
         />
       )}
 
-      {/* Title + Rating */}
+      {/* Header Card */}
       <View style={styles.headerCard}>
         <Text style={styles.title}>{place.name}</Text>
         <Text style={styles.address}>{place.formatted_address}</Text>
         <View style={styles.ratingRow}>
-          <Text style={styles.rating}>
-            ⭐ {place.rating} ({place.user_ratings_total} reviews)
-          </Text>
+          {place.rating && (
+            <Text style={styles.rating}>
+              ⭐ {place.rating} ({place.user_ratings_total || 0} reviews)
+            </Text>
+          )}
           <Text style={styles.price}>{getPriceSymbol(place.price_level)}</Text>
         </View>
       </View>
 
+      {/* Opening Hours */}
       {place.opening_hours && (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>
-            {place.opening_hours.open_now ? "🟢 Open Now" : "🔴 Closed"}
+            {place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'}
           </Text>
           {place.opening_hours.weekday_text?.map((d, i) => (
             <Text key={i} style={styles.detailText}>
@@ -71,6 +98,7 @@ const PlaceDetailsScreen = ({ route }) => {
         </View>
       )}
 
+      {/* Reviews */}
       {place.reviews && (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Top Reviews</Text>
@@ -85,6 +113,7 @@ const PlaceDetailsScreen = ({ route }) => {
         </View>
       )}
 
+      {/* Action Buttons */}
       <View style={styles.actionRow}>
         {place.website && (
           <TouchableOpacity
@@ -107,7 +136,7 @@ const PlaceDetailsScreen = ({ route }) => {
         <TouchableOpacity
           onPress={() =>
             Linking.openURL(
-              `https://www.google.com/maps/search/?api=1&query_place_id=${placeId}`
+              `https://www.google.com/maps/search/?api=1&query_place_id=${placeId}`,
             )
           }
           style={styles.actionBtn}
@@ -115,7 +144,8 @@ const PlaceDetailsScreen = ({ route }) => {
           <Text style={styles.actionText}>📍 Directions</Text>
         </TouchableOpacity>
       </View>
-      
+
+      {/* Booking */}
       <TouchableOpacity style={styles.paymentBtn}>
         <Text style={styles.paymentText}>💳 Book / Pay</Text>
       </TouchableOpacity>
@@ -126,83 +156,75 @@ const PlaceDetailsScreen = ({ route }) => {
 export default PlaceDetailsScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
+  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   coverImage: {
-    width: "100%",
+    width: '100%',
     height: 240,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
   headerCard: {
     padding: 16,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 16,
     marginHorizontal: 16,
     marginTop: -30,
     elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
   },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 4 },
-  address: { fontSize: 14, color: "#666", marginBottom: 6 },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
+  address: { fontSize: 14, color: '#666', marginBottom: 6 },
   ratingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  rating: { fontSize: 14, color: "#444" },
-  price: { fontSize: 14, fontWeight: "600", color: "#28a745" },
+  rating: { fontSize: 14, color: '#444' },
+  price: { fontSize: 14, fontWeight: '600', color: '#28a745' },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     marginHorizontal: 16,
     marginTop: 16,
     padding: 14,
     borderRadius: 16,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
   },
-  sectionTitle: { fontSize: 16, fontWeight: "600", marginBottom: 6 },
-  detailText: { fontSize: 13, color: "#555", marginBottom: 2 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
+  detailText: { fontSize: 13, color: '#555', marginBottom: 2 },
   reviewBox: {
-    backgroundColor: "#f1f3f6",
+    backgroundColor: '#f1f3f6',
     padding: 10,
     borderRadius: 12,
     marginBottom: 10,
   },
-  reviewAuthor: { fontWeight: "600", marginBottom: 4 },
-  reviewText: { fontSize: 13, color: "#444" },
+  reviewAuthor: { fontWeight: '600', marginBottom: 4 },
+  reviewText: { fontSize: 13, color: '#444' },
   actionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginTop: 20,
     marginHorizontal: 16,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   actionBtn: {
     flex: 1,
-    backgroundColor: "#007AFF",
+    backgroundColor: '#007AFF',
     paddingVertical: 12,
     borderRadius: 12,
     marginHorizontal: 4,
     marginBottom: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  actionText: { color: "#fff", fontSize: 14, fontWeight: "500" },
+  actionText: { color: '#fff', fontSize: 14, fontWeight: '500' },
   paymentBtn: {
-    backgroundColor: "#28a745",
+    backgroundColor: '#28a745',
     marginHorizontal: 16,
     paddingVertical: 16,
     borderRadius: 14,
     marginTop: 20,
     marginBottom: 30,
-    alignItems: "center",
+    alignItems: 'center',
     elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
   },
-  paymentText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  paymentText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });
