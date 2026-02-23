@@ -41,12 +41,3 @@ export const TripProvider = ({ children }) => {
     </TripContext.Provider>
   );
 };
-
-// ✅ Custom hook
-export const useTrip = () => {
-  const context = useContext(TripContext);
-  if (!context) {
-    throw new Error("useTrip must be used within a TripProvider");
-  }
-  return context;
-};

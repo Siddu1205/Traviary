@@ -22,22 +22,15 @@ import {
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
-import { Picker } from '@react-native-picker/picker';
-
-
-import { useTranslation } from '../components/useTranslation';
 
 const LoginScreen = ({ navigation, route }) => {
   const { mode } = route.params || { mode: 'login' };
-
-  const { t, language, setLanguage } = useTranslation();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
@@ -60,7 +53,7 @@ const LoginScreen = ({ navigation, route }) => {
 
   const LoginHandler = async () => {
     if (username.trim() === '' || password.trim() === '') {
-      setError(t('dontHaveAccount'));
+      setError('Please enter username and password');
       return;
     } else if (password.length < 6) {
       setError('Password must be at least 6 characters');
@@ -71,7 +64,6 @@ const LoginScreen = ({ navigation, route }) => {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         if (user.username === username && user.password === password) {
-          
           try {
             if (rememberMe) {
               await AsyncStorage.setItem(
@@ -85,8 +77,8 @@ const LoginScreen = ({ navigation, route }) => {
             console.log('remember store error', e);
           }
 
-          Alert.alert('✅', t('login') + ' successful!');
-          navigation.navigate('Tab'); 
+          Alert.alert('✅', 'Login successful!');
+          navigation.navigate('Tab');
           setError('');
           setPassword('');
           if (!rememberMe) setUsername('');
@@ -109,7 +101,7 @@ const LoginScreen = ({ navigation, route }) => {
     const user = { username, email, password };
     try {
       await AsyncStorage.setItem('user', JSON.stringify(user));
-      Alert.alert('✅', t('signup') + ' successful!');
+      Alert.alert('✅', 'Signup successful!');
       navigation.navigate('Login', { mode: 'login' });
     } catch (e) {
       console.log(e);
@@ -122,26 +114,14 @@ const LoginScreen = ({ navigation, route }) => {
     let idToken = signInResult.data?.idToken || signInResult.idToken;
     if (!idToken) throw new Error('No ID token found');
     const googleCredential = GoogleAuthProvider.credential(idToken);
-    return signInWithCredential(getAuth(), googleCredential);
+    return(
+      signInWithCredential(getAuth(), googleCredential)
+      // navigation.navigate('Tab')
+    );
   };
 
   return (
     <LinearGradient colors={['#E0EAFC', '#CFDEF3']} style={styles.container}>
-      {mode === 'login' && (
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={language}
-            onValueChange={itemValue => setLanguage(itemValue)}
-            style={styles.picker}
-            mode="dropdown"
-          >
-            <Picker.Item label="English" value="en" />
-            <Picker.Item label="हिंदी" value="hi" />
-            <Picker.Item label="Español" value="es" />
-          </Picker>
-        </View>
-      )}
-
       <Animatable.View animation="fadeInUp" duration={70} style={styles.card}>
         <Animatable.Image
           animation="bounceIn"
@@ -152,10 +132,10 @@ const LoginScreen = ({ navigation, route }) => {
         />
 
         <Animatable.View animation="fadeInLeft" delay={300}>
-          <Text style={styles.label}>{t('username')}</Text>
+          <Text style={styles.label}>Username</Text>
           <TextInput
             style={styles.input}
-            placeholder={t('username')}
+            placeholder="Username"
             placeholderTextColor="black"
             value={username}
             onChangeText={setUsername}
@@ -180,10 +160,10 @@ const LoginScreen = ({ navigation, route }) => {
           delay={700}
           style={{ position: 'relative' }}
         >
-          <Text style={styles.label}>{t('password')}</Text>
+          <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder={t('password')}
+            placeholder="Password"
             placeholderTextColor="black"
             value={password}
             onChangeText={setPassword}
@@ -233,7 +213,7 @@ const LoginScreen = ({ navigation, route }) => {
             onPress={mode === 'login' ? LoginHandler : SignupHandler}
           >
             <Text style={styles.buttonText}>
-              {mode === 'login' ? t('login') : t('signup')}
+              {mode === 'login' ? 'Login' : 'Signup'}
             </Text>
           </TouchableOpacity>
         </Animatable.View>
@@ -245,20 +225,20 @@ const LoginScreen = ({ navigation, route }) => {
         >
           {mode === 'login' ? (
             <>
-              <Text style={styles.signup}>{t('dontHaveAccount')} </Text>
+              <Text style={styles.signup}>Don't have an account? </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Login', { mode: 'signup' })}
               >
-                <Text style={styles.span}>{t('signup')}</Text>
+                <Text style={styles.span}>Signup</Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <Text style={styles.signup}>{t('alreadyHaveAccount')} </Text>
+              <Text style={styles.signup}>Already have an account? </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Login', { mode: 'login' })}
               >
-                <Text style={styles.span}>{t('login')}</Text>
+                <Text style={styles.span}>Login</Text>
               </TouchableOpacity>
             </>
           )}
@@ -267,7 +247,7 @@ const LoginScreen = ({ navigation, route }) => {
         <Animatable.View animation="fadeInUp" delay={1300}>
           <TouchableOpacity style={styles.googleBtn} onPress={GoogleHandler}>
             <AntDesign name="google" size={24} color="#DB4437" />
-            <Text style={styles.googleText}>{t('continueWithGoogle')}</Text>
+            <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
         </Animatable.View>
       </Animatable.View>
@@ -279,20 +259,6 @@ export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  pickerContainer: {
-    position: 'absolute',
-    top: hp('5%'),
-    right: wp('5%'),
-    width: wp('32%'),
-    height: hp('6%'),
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-  },
-  picker: { width: '100%', height: '100%' },
   logo: {
     width: wp('100%'),
     height: hp('12%'),
@@ -390,7 +356,6 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '600',
   },
-
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',

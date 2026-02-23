@@ -21,7 +21,7 @@ const ConfirmationScreen = ({ navigation }) => {
   } = trip;
 
   const totalGuests =
-    (guests?.adults || 0) + (guests?.children || 0) + (guests?.infants || 0);
+    (guests?.adults) + (guests?.children) + (guests?.infants);
 
   const handleConfirm = () => {
     addTrip({ endLocation, startDate, endDate, assistance: travelAssistance });

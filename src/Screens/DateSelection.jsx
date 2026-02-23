@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -7,169 +7,146 @@ import {
   StyleSheet,
   Image,
   Alert,
-} from 'react-native';
-import DatePicker from 'react-native-date-picker';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import StepIndicator from '../components/StepIndicator';
+} from "react-native";
+import DatePicker from "react-native-date-picker";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import StepIndicator from "../components/StepIndicator";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
-} from 'react-native-responsive-screen';
-import { TripContext } from '../components/TripContext';
+} from "react-native-responsive-screen";
+import { TripContext } from "../components/TripContext";
 
-
-const parseDDMMYYYY = (s) => {
-  if (!s || typeof s !== 'string') return null;
-  const parts = s.split('/');
-  if (parts.length !== 3) return null;
-  const [dd, mm, yyyy] = parts;
-  const iso = `${yyyy.padStart(4, '0')}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
-  const d = new Date(iso);
-  return isNaN(d.getTime()) ? null : d;
+/* ---------- helpers ---------- */
+const parseDate = (str) => {
+  console.log("02/11/2024")
+  if (!str) return null;
+  const [dd, mm, yyyy] = str.split("/");
+  const d = new Date(`${yyyy}-${mm}-${dd}`);
+  return isNaN(d) ? null : d;
 };
 
-const formatDateDDMMYYYY = (d) => {
-  if (!d || !(d instanceof Date)) return '';
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
+const formatDate = (d) => {
+  if (!d) return "";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yyyy = d.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
 };
 
+/* ---------- component ---------- */
 const DateSelectionScreen = ({ navigation }) => {
   const { trip, setTrip } = useContext(TripContext);
 
-  const startStr = trip?.startDate || '';
-  const endStr = trip?.endDate || '';
-
-  const [startDateObj, setStartDateObj] = useState(() => parseDDMMYYYY(startStr) || new Date());
-  const [endDateObj, setEndDateObj] = useState(() => parseDDMMYYYY(endStr) || new Date());
+  const [startDate, setStartDate] = useState(parseDate(trip.startDate) || new Date());
+  const [endDate, setEndDate] = useState(parseDate(trip.endDate) || new Date());
 
   const [openStart, setOpenStart] = useState(false);
   const [openEnd, setOpenEnd] = useState(false);
 
-  const bothSelected = !!startStr && !!endStr;
-  const isValid =
-    bothSelected &&
-    (parseDDMMYYYY(endStr)?.getTime() ?? endDateObj.getTime()) >=
-      (parseDDMMYYYY(startStr)?.getTime() ?? startDateObj.getTime());
-  
-  const onConfirmStart = useCallback(
-    (selectedDate) => {
-      setOpenStart(false);
-      if (!selectedDate || !(selectedDate instanceof Date)) return;
+  const isValid = trip.startDate && trip.endDate && parseDate(trip.endDate) >= parseDate(trip.startDate);
 
-      setStartDateObj(selectedDate);
+  /* handle start date */
+  const handleStartConfirm = (date) => {
+    setOpenStart(false);
+    if (!date) return;
 
-      setTimeout(() => {
-        const formattedStart = formatDateDDMMYYYY(selectedDate);
-        const currentEnd = parseDDMMYYYY(endStr) || endDateObj;
+    const formatted = formatDate(date);
+    setStartDate(date);
 
-        if (currentEnd.getTime() < selectedDate.getTime()) {
-          setEndDateObj(selectedDate);
-          setTrip({ ...trip, startDate: formattedStart, endDate: formattedStart });
-        } else {
-          setTrip({ ...trip, startDate: formattedStart });
-        }
-      }, 50);
-    },
-    [trip, endStr, endDateObj]
-  );
+    // if endDate < startDate, reset endDate too
+    if (endDate < date) {
+      setEndDate(date);
+      setTrip({ ...trip, startDate: formatted, endDate: formatted });
+    } else {
+      setTrip({ ...trip, startDate: formatted });
+    }
+  };
 
-  const onConfirmEnd = useCallback(
-    (selectedDate) => {
-      setOpenEnd(false);
-      if (!selectedDate || !(selectedDate instanceof Date)) return;
+  /* handle end date */
+  const handleEndConfirm = (date) => {
+    setOpenEnd(false);
+    if (!date) return;
 
-      const startDate = parseDDMMYYYY(startStr) || startDateObj;
-      if (selectedDate.getTime() < startDate.getTime()) {
-        setTimeout(() => {
-          Alert.alert('Invalid date', 'End date cannot be before start date.');
-        }, 60);
-        return;
-      }
+    if (date < startDate) {
+      Alert.alert("Invalid date", "End date cannot be before start date.");
+      return;
+    }
 
-      setEndDateObj(selectedDate);
-
-      setTimeout(() => {
-        setTrip({ ...trip, endDate: formatDateDDMMYYYY(selectedDate) });
-      }, 50);
-    },
-    [trip, startStr, startDateObj]
-  );
+    setEndDate(date);
+    setTrip({ ...trip, endDate: formatDate(date) });
+  };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <StepIndicator currentStep={1} />
 
       <Text style={styles.title}>Date Selection</Text>
       <Text style={styles.sub}>Select your Start and End Date.</Text>
 
+      {/* start date */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Start Date</Text>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
+            value={trip.startDate}
             placeholder="dd/mm/yyyy"
-            placeholderTextColor="#94A3B8"
-            value={startStr}
             editable={false}
-            accessibilityLabel="Start date"
           />
-          <TouchableOpacity
-            style={styles.iconInside}
-            onPress={() => setOpenStart(true)}
-            accessibilityLabel="Open start date picker"
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={styles.iconInside} onPress={() => setOpenStart(true)}>
             <Ionicons name="calendar-outline" size={22} color="#334155" />
           </TouchableOpacity>
         </View>
       </View>
 
+      {/* end date */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>End Date</Text>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
+            value={trip.endDate}
             placeholder="dd/mm/yyyy"
-            placeholderTextColor="#94A3B8"
-            value={endStr}
             editable={false}
-            accessibilityLabel="End date"
           />
           <TouchableOpacity
-            style={[styles.iconInside, !startStr && styles.iconDisabled]}
+            style={styles.iconInside}
             onPress={() => {
-              if (!startStr) {
-                Alert.alert('Select start date', 'Please select a start date first.');
+              if (!trip.startDate) {
+                Alert.alert("Select start date first");
                 return;
               }
               setOpenEnd(true);
             }}
-            disabled={!startStr}
-            activeOpacity={0.7}
+            disabled={!trip.startDate}
           >
-            <Ionicons name="calendar-outline" size={22} color={!startStr ? '#B0BEC5' : '#334155'} />
+            <Ionicons
+              name="calendar-outline"
+              size={22}
+              color={trip.startDate ? "#334155" : "#B0BEC5"}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
+      {/* next button */}
       <TouchableOpacity
-        disabled={!isValid}
         style={[styles.button, !isValid && styles.buttonDisabled]}
-        onPress={() => navigation.navigate('Guests')}
+        disabled={!isValid}
+        onPress={() => navigation.navigate("Guests")}
       >
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
 
+      {/* pickers */}
       {openStart && (
         <DatePicker
           modal
           mode="date"
           open={openStart}
-          date={startDateObj}
-          onConfirm={onConfirmStart}
+          date={startDate}
+          onConfirm={handleStartConfirm}
           onCancel={() => setOpenStart(false)}
         />
       )}
@@ -179,24 +156,25 @@ const DateSelectionScreen = ({ navigation }) => {
           modal
           mode="date"
           open={openEnd}
-          date={endDateObj}
-          minimumDate={startDateObj}
-          onConfirm={onConfirmEnd}
+          date={endDate}
+          minimumDate={startDate}
+          onConfirm={handleEndConfirm}
           onCancel={() => setOpenEnd(false)}
         />
       )}
 
+      {/* bottom image */}
       <Image
-        source={require('../images/mountain.png')}
+        source={require("../images/mountain.png")}
         style={styles.bottomImage}
         resizeMode="stretch"
-        pointerEvents="none"
       />
     </View>
   );
 };
 
 export default DateSelectionScreen;
+
 
 /* ---------- styles ---------- */
 const styles = StyleSheet.create({

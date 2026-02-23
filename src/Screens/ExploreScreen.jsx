@@ -10,16 +10,15 @@ import {
   StyleSheet,
 } from 'react-native';
 import { TripContext } from '../components/TripContext';
+import { API_KEY } from '../constant/AuthKey';
 
-const API_KEY = 'AIzaSyAwuRrLeMEG_JfwIe_oWgAHpy8zIBURQvM';
 
 const ExploreScreen = ({ navigation }) => {
   const { trip } = useContext(TripContext);
   const [places, setPlaces] = useState({
     hotels: [],
     restaurants: [],
-    attractions: [],
-    cities: [],
+    attractions: []
   });
   const [activeTab, setActiveTab] = useState('hotels');
   const [loading, setLoading] = useState(true);
@@ -81,7 +80,6 @@ const ExploreScreen = ({ navigation }) => {
       hotels: trendingHotels,
       restaurants: [],
       attractions: trendingAttractions,
-      cities: trendingCities,
     });
     setActiveTab('hotels');
     setLoading(false);
@@ -98,7 +96,7 @@ const ExploreScreen = ({ navigation }) => {
           fetchPlaces(coords, 'restaurant'),
           fetchPlaces(coords, 'tourist_attraction'),
         ]);
-        setPlaces({ hotels, restaurants, attractions, cities: [] });
+        setPlaces({ hotels, restaurants, attractions,});
         setActiveTab('hotels');
       } else {
         const results = await fetchPlacesByQuery(searchQuery.trim());
@@ -108,7 +106,7 @@ const ExploreScreen = ({ navigation }) => {
           attractions: results,
           cities: [],
         });
-        setActiveTab('attractions');
+        setActiveTab('hotels');
       }
     } catch (e) {
       console.error('Search error:', e);
